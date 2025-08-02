@@ -1,19 +1,19 @@
 // Proxy Configuration for yt-dlp
 const proxyConfig = {
-    enabled: false, // Tạm thời disable cho đến khi proxy hoạt động
+    enabled: true, // Bật proxy với thông tin mới
     
-    // Single proxy - Proxy chính của bạn
+    // Single proxy - Proxy mới của chủ
     single: {
         type: 'socks5',
-        host: '104.214.189.133',
+        host: '74.226.201.156',
         port: 1080,
-        username: 'dunkum',
-        password: 'dun',
+        username: 'dunn',
+        password: '1234',
     },
     
-    // Proxy pool cho load balancing - Bao gồm proxy chính của bạn
+    // Proxy pool cho load balancing - Bao gồm proxy mới
     pool: [
-        'socks5://dunkum:dun@104.214.189.133:1080', // Proxy chính của bạn
+        'socks5://dunn:1234@74.226.201.156:1080', // Proxy mới của chủ
         'socks5://user1:pass1@proxy1.example.com:1080',
         'socks5://user2:pass2@proxy2.example.com:1080',
         'http://user3:pass3@proxy3.example.com:8080',
@@ -26,12 +26,12 @@ const proxyConfig = {
         rotateOnFailure: true
     },
     
-    // Proxy cho từng platform - Sử dụng proxy của bạn
+    // Proxy cho từng platform - Sử dụng proxy mới
     platformSpecific: {
-        'youtube.com': 'socks5://dunkum:dun@104.214.189.133:1080',
-        'facebook.com': 'socks5://dunkum:dun@104.214.189.133:1080',
-        'instagram.com': 'socks5://dunkum:dun@104.214.189.133:1080',
-        'tiktok.com': 'socks5://dunkum:dun@104.214.189.133:1080'
+        'youtube.com': 'socks5://dunn:1234@74.226.201.156:1080',
+        'facebook.com': 'socks5://dunn:1234@74.226.201.156:1080',
+        'instagram.com': 'socks5://dunn:1234@74.226.201.156:1080',
+        'tiktok.com': 'socks5://dunn:1234@74.226.201.156:1080'
     },
     
     // Geo-targeting

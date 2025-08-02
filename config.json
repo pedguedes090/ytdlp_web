@@ -29,12 +29,12 @@
     "proxySupport": true
   },
   "proxy": {
-    "enabled": false,
+    "enabled": true,
     "type": "socks5",
-    "host": "104.214.189.133",
+    "host": "74.226.201.156",
     "port": 1080,
-    "username": "dunkum",
-    "password": "dun",
+    "username": "dunn",
+    "password": "1234",
     "poolEnabled": false,
     "pool": [],
     "platformSpecific": {},
