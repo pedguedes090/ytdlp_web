@@ -25,19 +25,6 @@
     "audioPlayer": true,
     "directDownload": true,
     "copyLink": true,
-    "fileIdSystem": true,
-    "proxySupport": true
-  },
-  "proxy": {
-    "enabled": true,
-    "type": "socks5",
-    "host": "74.226.201.156",
-    "port": 1080,
-    "username": "dunn",
-    "password": "1234",
-    "poolEnabled": false,
-    "pool": [],
-    "platformSpecific": {},
-    "regions": {}
+    "fileIdSystem": true
   }
 }

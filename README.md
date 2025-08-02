@@ -6,8 +6,7 @@
 - ⏰ **Auto Cleanup** - File tự động xóa sau 5 phút để tiết kiệm dung lượng
 - 🔗 **Direct Link** - Link trực tiếp và copy link dễ dàng
 - 📱 **Modern UI** - Giao diện đẹp, responsive và thân thiện
-- 🚫 **Đã bỏ phần "File Đã Tải"** - Tập trung vào trải nghiệm xem/nghe trực tiếp
-- 🌐 **Proxy Support** - Hỗ trợ SOCKS5/HTTP proxy để tránh bị blocknloader API v2.1 🎬
+- 🚫 **Đã bỏ phần "File Đã Tải"** - Tập trung vào trải nghiệm xem/nghe trực tiếpnloader API v2.1 🎬
 
 API hiện đại để tải video từ YouTube và các nền tảng khác sử dụng yt-dlp và Node.js với video player tích hợp và tự động cleanup.
 
@@ -144,7 +143,7 @@ d:\ytdlp/
 
 ## 🛠️ Cấu hình
 
-### Cấu hình cơ bản - `config.json`:
+Chỉnh sửa `config.json`:
 ```json
 {
   "autoCleanup": {
@@ -155,50 +154,10 @@ d:\ytdlp/
     "videoPlayer": true,
     "audioPlayer": true,
     "directDownload": true,
-    "copyLink": true,
-    "proxySupport": true
-  },
-  "proxy": {
-    "enabled": false,
-    "type": "socks5",
-    "host": "proxy.example.com",
-    "port": 1080,
-    "username": "your_username",
-    "password": "your_password"
+    "copyLink": true
   }
 }
 ```
-
-### Cấu hình Proxy (Optional):
-Để tránh bị block bởi các platform, bạn có thể cấu hình proxy:
-
-1. **SOCKS5 Proxy** (Khuyến nghị):
-   ```json
-   {
-     "proxy": {
-       "enabled": true,
-       "type": "socks5",
-       "host": "your-proxy.com",
-       "port": 1080,
-       "username": "user",
-       "password": "pass"
-     }
-   }
-   ```
-
-2. **HTTP Proxy**:
-   ```json
-   {
-     "proxy": {
-       "enabled": true,
-       "type": "http",
-       "host": "proxy.server.com",
-       "port": 8080
-     }
-   }
-   ```
-
-📋 Xem chi tiết trong `PROXY_GUIDE.md`
 
 ## 🔐 Bảo mật
 
