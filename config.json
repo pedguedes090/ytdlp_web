@@ -31,10 +31,10 @@
   "proxy": {
     "enabled": false,
     "type": "socks5",
-    "host": "proxy.example.com",
+    "host": "104.214.189.133",
     "port": 1080,
-    "username": "",
-    "password": "",
+    "username": "dunkum",
+    "password": "dun",
     "poolEnabled": false,
     "pool": [],
     "platformSpecific": {},
