@@ -25,6 +25,19 @@
     "audioPlayer": true,
     "directDownload": true,
     "copyLink": true,
-    "fileIdSystem": true
+    "fileIdSystem": true,
+    "proxySupport": true
+  },
+  "proxy": {
+    "enabled": false,
+    "type": "socks5",
+    "host": "proxy.example.com",
+    "port": 1080,
+    "username": "",
+    "password": "",
+    "poolEnabled": false,
+    "pool": [],
+    "platformSpecific": {},
+    "regions": {}
   }
 }

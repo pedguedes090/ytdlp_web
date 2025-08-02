@@ -5,6 +5,7 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const os = require('os');
+const { getProxyForUrl, validateProxy } = require('./proxy-config');
 
 const app = express();
 const PORT = process.env.PORT || 7860; // Hugging Face Spaces sử dụng port 7860
@@ -63,7 +64,11 @@ app.post('/video-info', async (req, res) => {
         return res.status(400).json({ error: 'URL là bắt buộc' });
     }
 
-    const command = `yt-dlp --dump-json "${url}"`;
+    // Lấy proxy cho URL này
+    const proxyUrl = getProxyForUrl(url);
+    const proxyFlag = proxyUrl && validateProxy(proxyUrl) ? `--proxy "${proxyUrl}"` : '';
+    
+    const command = `yt-dlp ${proxyFlag} --dump-json "${url}"`.replace(/\s+/g, ' ').trim();
     
     exec(command, (error, stdout, stderr) => {
         if (error) {
@@ -105,6 +110,10 @@ app.post('/download', async (req, res) => {
     const fileId = generateFileId();
     const timestamp = Date.now();
     
+    // Lấy proxy cho URL này
+    const proxyUrl = getProxyForUrl(url);
+    const proxyFlag = proxyUrl && validateProxy(proxyUrl) ? `--proxy "${proxyUrl}"` : '';
+    
     let command;
     let expectedExtension;
     
@@ -112,7 +121,7 @@ app.post('/download', async (req, res) => {
         // Tải audio
         expectedExtension = 'mp3';
         const outputTemplate = path.join(downloadsDir, `${fileId}.%(ext)s`);
-        command = `yt-dlp -x --audio-format mp3 --audio-quality ${quality} -o "${outputTemplate}" "${url}"`;
+        command = `yt-dlp ${proxyFlag} -x --audio-format mp3 --audio-quality ${quality} -o "${outputTemplate}" "${url}"`;
     } else {
         // Tải video với format selection tối ưu
         expectedExtension = 'mp4';
@@ -128,10 +137,14 @@ app.post('/download', async (req, res) => {
             formatFlag = `-f "bestvideo[height<=${quality.replace('p', '')}]+bestaudio/best[height<=${quality.replace('p', '')}]"`;
         }
         
-        command = `yt-dlp ${formatFlag} -o "${outputTemplate}" "${url}"`.replace(/\s+/g, ' ').trim();
+        command = `yt-dlp ${proxyFlag} ${formatFlag} -o "${outputTemplate}" "${url}"`.replace(/\s+/g, ' ').trim();
     }
     
-    console.log('Đang thực thi lệnh:', command);
+    // Log proxy usage
+    if (proxyUrl) {
+        console.log(`🌐 Sử dụng proxy: ${proxyUrl.replace(/\/\/[^@]+@/, '//***:***@')}`);
+    }
+    console.log('Đang thực thi lệnh:', command.replace(/--proxy "[^"]+"/, '--proxy "***"'));
     
     exec(command, (error, stdout, stderr) => {
         if (error) {
@@ -155,7 +168,7 @@ app.post('/download', async (req, res) => {
             scheduleFileCleanup(filePath);
             
             // Lấy thông tin video để trả về
-            const getVideoInfoCommand = `yt-dlp --dump-json --no-download "${url}"`;
+            const getVideoInfoCommand = `yt-dlp ${proxyFlag} --dump-json --no-download "${url}"`.replace(/\s+/g, ' ').trim();
             exec(getVideoInfoCommand, (infoError, infoStdout) => {
                 let videoInfo = null;
                 if (!infoError) {
