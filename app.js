@@ -6,7 +6,7 @@ const path = require('path');
 const crypto = require('crypto');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 7860; // Hugging Face Spaces sử dụng port 7860
 
 // Middleware
 app.use(cors());
@@ -242,7 +242,8 @@ app.get('/api', (req, res) => {
     });
 });
 
-app.listen(PORT, () => {
-    console.log(`🚀 API đang chạy tại http://localhost:${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`🚀 YouTube Downloader API đang chạy tại http://localhost:${PORT}`);
+    console.log(`📱 Giao diện web: http://localhost:${PORT}`);
     console.log(`📁 Thư mục tải xuống: ${downloadsDir}`);
 });
