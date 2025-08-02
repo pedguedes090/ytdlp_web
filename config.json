@@ -1,0 +1,30 @@
+{
+  "port": 3000,
+  "downloadsDir": "./downloads",
+  "corsEnabled": true,
+  "defaultQuality": "worst",
+  "supportedFormats": ["video", "audio"],
+  "maxFileSize": "500MB",
+  "allowedOrigins": ["*"],
+  "app": {
+    "name": "YouTube Downloader API",
+    "version": "2.1.0",
+    "description": "API để tải video từ YouTube và các trang web khác sử dụng yt-dlp với video player tích hợp"
+  },
+  "limits": {
+    "maxConcurrentDownloads": 3,
+    "downloadTimeout": 300000
+  },
+  "autoCleanup": {
+    "enabled": true,
+    "fileLifetime": 300000,
+    "description": "File sẽ tự động xóa sau 5 phút (300000ms)"
+  },
+  "features": {
+    "videoPlayer": true,
+    "audioPlayer": true,
+    "directDownload": true,
+    "copyLink": true,
+    "fileIdSystem": true
+  }
+}

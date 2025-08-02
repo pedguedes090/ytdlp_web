@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Downloader Online - yt-dlp API</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .preview-placeholder {
+            background: linear-gradient(45deg, #f0f0f0 25%, transparent 25%), 
+                        linear-gradient(-45deg, #f0f0f0 25%, transparent 25%), 
+                        linear-gradient(45deg, transparent 75%, #f0f0f0 75%), 
+                        linear-gradient(-45deg, transparent 75%, #f0f0f0 75%);
+            background-size: 20px 20px;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+        }
+        .spinner {
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen">
+    <!-- API Status Indicator -->
+    <div id="apiStatus" class="fixed top-4 right-4 z-50"></div>
+
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="text-center mb-12">
+            <h1 class="text-5xl font-bold text-white mb-4">
+                🎬 Video Downloader
+            </h1>
+            <p class="text-xl text-white/80 max-w-2xl mx-auto">
+                Tải video từ YouTube và các trang web khác sử dụng yt-dlp API
+            </p>
+        </div>
+
+        <!-- Main Content -->
+        <div class="max-w-6xl mx-auto">
+            <div class="grid lg:grid-cols-2 gap-8">
+                <!-- Input Section -->
+                <div class="glass-effect rounded-2xl p-8">
+                    <h2 class="text-2xl font-semibold text-white mb-6 flex items-center">
+                        📥 Nhập Liên Kết
+                    </h2>
+                    
+                    <div class="space-y-6">
+                        <div>
+                            <label class="block text-white/90 text-sm font-medium mb-3">
+                                URL Video
+                            </label>
+                            <input 
+                                type="url" 
+                                id="videoUrl"
+                                placeholder="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+                                value="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+                                class="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all"
+                            >
+                        </div>
+
+                        <div>
+                            <label class="block text-white/90 text-sm font-medium mb-3">
+                                Chất Lượng
+                            </label>
+                            <select id="qualitySelect" class="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all">
+                                <option value="best" class="bg-gray-800">Tốt nhất</option>
+                                <option value="worst" class="bg-gray-800">Thấp nhất (nhanh hơn)</option>
+                                <option value="720p" class="bg-gray-800">720p (HD)</option>
+                                <option value="480p" class="bg-gray-800">480p (SD)</option>
+                                <option value="360p" class="bg-gray-800">360p</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-white/90 text-sm font-medium mb-3">
+                                Định Dạng
+                            </label>
+                            <div class="flex gap-3">
+                                <label class="flex items-center cursor-pointer">
+                                    <input type="radio" name="format" value="video" checked class="sr-only">
+                                    <div class="w-5 h-5 rounded-full border-2 border-white/40 flex items-center justify-center mr-2">
+                                        <div class="w-2 h-2 rounded-full bg-blue-400"></div>
+                                    </div>
+                                    <span class="text-white/90">Video</span>
+                                </label>
+                                <label class="flex items-center cursor-pointer">
+                                    <input type="radio" name="format" value="audio" class="sr-only">
+                                    <div class="w-5 h-5 rounded-full border-2 border-white/40 flex items-center justify-center mr-2">
+                                        <div class="w-2 h-2 rounded-full bg-transparent"></div>
+                                    </div>
+                                    <span class="text-white/90">Audio MP3</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-3">
+                            <button 
+                                onclick="getVideoInfo()"
+                                class="flex-1 bg-gradient-to-r from-green-500 to-teal-600 hover:from-green-600 hover:to-teal-700 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg"
+                            >
+                                🔍 Xem Thông Tin
+                            </button>
+                            <button 
+                                onclick="downloadVideo()"
+                                class="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg"
+                            >
+                                🚀 Tải Xuống
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Preview Section -->
+                <div class="glass-effect rounded-2xl p-8">
+                    <h2 class="text-2xl font-semibold text-white mb-6 flex items-center">
+                        👁️ Thông Tin Video
+                    </h2>
+                    
+                    <div id="previewContainer" class="space-y-4">
+                        <div class="preview-placeholder rounded-xl h-48 flex items-center justify-center">
+                            <div class="text-center text-gray-500">
+                                <div class="text-4xl mb-2">🎥</div>
+                                <p>Nhấn "Xem Thông Tin" để hiển thị chi tiết video</p>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white/5 rounded-xl p-4">
+                            <h3 id="videoTitle" class="text-white font-medium mb-2">Tiêu đề video sẽ hiển thị ở đây</h3>
+                            <div class="flex justify-between text-sm text-white/70">
+                                <span id="videoDuration">Thời lượng: --:--</span>
+                                <span id="videoViews">Lượt xem: --</span>
+                            </div>
+                            <div class="mt-2 text-sm text-white/70">
+                                <span id="videoUploader">Kênh: --</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Output Section -->
+            <div class="glass-effect rounded-2xl p-8 mt-8">
+                <h2 class="text-2xl font-semibold text-white mb-6 flex items-center">
+                    📤 Kết Quả Tải Xuống
+                </h2>
+                
+                <div id="outputContainer" class="space-y-4">
+                    <div class="bg-white/5 rounded-xl p-6 text-center">
+                        <div class="text-4xl mb-4">⏳</div>
+                        <p class="text-white/70">Chưa có video nào được xử lý</p>
+                        <p class="text-sm text-white/50 mt-2">Nhập URL và nhấn "Tải Xuống" để bắt đầu</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Downloaded Files Section -->
+            <div class="glass-effect rounded-2xl p-8 mt-8">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-2xl font-semibold text-white flex items-center">
+                        📁 File Đã Tải
+                    </h2>
+                    <button 
+                        onclick="refreshDownloadsList()"
+                        class="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-lg transition-colors text-sm"
+                    >
+                        🔄 Làm mới
+                    </button>
+                </div>
+                
+                <div id="downloadsContainer">
+                    <div class="bg-white/5 rounded-xl p-6 text-center">
+                        <div class="text-4xl mb-4">�</div>
+                        <p class="text-white/70">Đang tải danh sách file...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Supported Sites -->
+            <div class="glass-effect rounded-2xl p-8 mt-8">
+                <h2 class="text-2xl font-semibold text-white mb-6 text-center">
+                    🌐 Trang Web Được Hỗ Trợ (yt-dlp)
+                </h2>
+                <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                    <div class="bg-white/10 rounded-lg p-4 text-center">
+                        <div class="text-2xl mb-2">📺</div>
+                        <span class="text-white/80 text-sm">YouTube</span>
+                    </div>
+                    <div class="bg-white/10 rounded-lg p-4 text-center">
+                        <div class="text-2xl mb-2">📱</div>
+                        <span class="text-white/80 text-sm">TikTok</span>
+                    </div>
+                    <div class="bg-white/10 rounded-lg p-4 text-center">
+                        <div class="text-2xl mb-2">📘</div>
+                        <span class="text-white/80 text-sm">Facebook</span>
+                    </div>
+                    <div class="bg-white/10 rounded-lg p-4 text-center">
+                        <div class="text-2xl mb-2">📷</div>
+                        <span class="text-white/80 text-sm">Instagram</span>
+                    </div>
+                    <div class="bg-white/10 rounded-lg p-4 text-center">
+                        <div class="text-2xl mb-2">�</div>
+                        <span class="text-white/80 text-sm">Twitter</span>
+                    </div>
+                    <div class="bg-white/10 rounded-lg p-4 text-center">
+                        <div class="text-2xl mb-2">🎵</div>
+                        <span class="text-white/80 text-sm">Vimeo</span>
+                    </div>
+                </div>
+                <div class="text-center mt-4">
+                    <p class="text-white/60 text-sm">và hàng nghìn trang web khác được hỗ trợ bởi yt-dlp</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3000';
+        let currentVideoInfo = null;
+
+        // Handle radio button visual feedback
+        document.querySelectorAll('input[name="format"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                document.querySelectorAll('input[name="format"]').forEach(r => {
+                    const circle = r.parentElement.querySelector('div div');
+                    if (r.checked) {
+                        circle.classList.add('bg-blue-400');
+                        circle.classList.remove('bg-transparent');
+                    } else {
+                        circle.classList.remove('bg-blue-400');
+                        circle.classList.add('bg-transparent');
+                    }
+                });
+            });
+        });
+
+        // Show API status indicator
+        function showApiStatus(status, message) {
+            const statusDiv = document.getElementById('apiStatus');
+            const statusClass = status === 'ok' ? 'bg-green-500' : status === 'loading' ? 'bg-yellow-500' : 'bg-red-500';
+            statusDiv.innerHTML = `
+                <div class="${statusClass} text-white px-4 py-2 rounded-lg shadow-lg flex items-center">
+                    <div class="mr-2">${status === 'ok' ? '✅' : status === 'loading' ? '⏳' : '❌'}</div>
+                    <span class="text-sm">${message}</span>
+                </div>
+            `;
+        }
+
+        // Check API status on load
+        async function checkApiStatus() {
+            showApiStatus('loading', 'Đang kiểm tra API...');
+            try {
+                const response = await fetch(`${API_BASE}/status`);
+                const data = await response.json();
+                if (data.status === 'ok') {
+                    showApiStatus('ok', `API sẵn sàng - yt-dlp ${data.yt_dlp_version}`);
+                } else {
+                    showApiStatus('error', 'API có lỗi');
+                }
+            } catch (error) {
+                showApiStatus('error', 'Không thể kết nối API');
+            }
+        }
+
+        // Get video information
+        async function getVideoInfo() {
+            const url = document.getElementById('videoUrl').value.trim();
+            if (!url) {
+                alert('Vui lòng nhập URL video!');
+                return;
+            }
+
+            // Show loading state
+            const previewContainer = document.getElementById('previewContainer');
+            previewContainer.innerHTML = `
+                <div class="bg-gray-800 rounded-xl h-48 flex items-center justify-center">
+                    <div class="text-center text-white">
+                        <div class="text-4xl mb-4 spinner">⚙️</div>
+                        <p>Đang lấy thông tin video...</p>
+                    </div>
+                </div>
+                <div class="bg-white/5 rounded-xl p-4">
+                    <div class="animate-pulse">
+                        <div class="h-4 bg-white/20 rounded mb-2"></div>
+                        <div class="h-3 bg-white/10 rounded"></div>
+                    </div>
+                </div>
+            `;
+
+            try {
+                const response = await fetch(`${API_BASE}/video-info`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    currentVideoInfo = data;
+                    updatePreview(data);
+                } else {
+                    showError(data.error || 'Không thể lấy thông tin video');
+                }
+            } catch (error) {
+                showError(`Lỗi kết nối: ${error.message}`);
+            }
+        }
+
+        // Update preview with video info
+        function updatePreview(videoInfo) {
+            const duration = videoInfo.duration ? 
+                `${Math.floor(videoInfo.duration / 60)}:${(videoInfo.duration % 60).toString().padStart(2, '0')}` : 
+                'N/A';
+            
+            const views = videoInfo.view_count ? 
+                videoInfo.view_count.toLocaleString('vi-VN') : 
+                'N/A';
+
+            document.getElementById('previewContainer').innerHTML = `
+                <div class="bg-gray-800 rounded-xl h-48 flex items-center justify-center relative overflow-hidden">
+                    ${videoInfo.thumbnail ? 
+                        `<img src="${videoInfo.thumbnail}" alt="Thumbnail" class="w-full h-full object-cover rounded-xl">` :
+                        `<div class="text-center text-white">
+                            <div class="text-6xl mb-2">🎬</div>
+                            <p class="text-sm opacity-75">Video Preview</p>
+                        </div>`
+                    }
+                    <div class="absolute inset-0 bg-black/20 rounded-xl"></div>
+                    <div class="absolute bottom-4 right-4 bg-black/70 text-white px-2 py-1 rounded text-sm">
+                        ${duration}
+                    </div>
+                </div>
+                <div class="bg-white/5 rounded-xl p-4">
+                    <h3 class="text-white font-medium mb-2">${videoInfo.title || 'Không có tiêu đề'}</h3>
+                    <div class="flex justify-between text-sm text-white/70">
+                        <span>Thời lượng: ${duration}</span>
+                        <span>Lượt xem: ${views}</span>
+                    </div>
+                    <div class="mt-2 text-sm text-white/70">
+                        <span>Kênh: ${videoInfo.uploader || 'N/A'}</span>
+                    </div>
+                    <div class="mt-2 text-xs text-white/50">
+                        ${videoInfo.formats?.length || 0} định dạng có sẵn
+                    </div>
+                </div>
+            `;
+        }
+
+        // Download video
+        async function downloadVideo() {
+            const url = document.getElementById('videoUrl').value.trim();
+            const quality = document.getElementById('qualitySelect').value;
+            const format = document.querySelector('input[name="format"]:checked').value;
+            
+            if (!url) {
+                alert('Vui lòng nhập URL video!');
+                return;
+            }
+
+            // Show loading state
+            const outputContainer = document.getElementById('outputContainer');
+            outputContainer.innerHTML = `
+                <div class="bg-blue-500/10 border border-blue-500/30 rounded-xl p-6 text-center">
+                    <div class="text-4xl mb-4 spinner">⚙️</div>
+                    <p class="text-white mb-2">Đang tải video...</p>
+                    <p class="text-white/70 text-sm">Chất lượng: ${quality} | Định dạng: ${format === 'audio' ? 'MP3' : 'Video'}</p>
+                    <div class="w-full bg-white/10 rounded-full h-2 mt-4">
+                        <div class="bg-blue-500 h-2 rounded-full animate-pulse" style="width: 60%"></div>
+                    </div>
+                    <p class="text-white/60 text-xs mt-2">Thời gian tải phụ thuộc vào kích thước và chất lượng video</p>
+                </div>
+            `;
+
+            try {
+                const response = await fetch(`${API_BASE}/download`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url, format, quality })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showDownloadSuccess(data);
+                    refreshDownloadsList();
+                } else {
+                    showError(data.error || 'Không thể tải video');
+                }
+            } catch (error) {
+                showError(`Lỗi kết nối: ${error.message}`);
+            }
+        }
+
+        // Show download success
+        function showDownloadSuccess(data) {
+            const outputContainer = document.getElementById('outputContainer');
+            outputContainer.innerHTML = `
+                <div class="bg-green-500/10 border border-green-500/30 rounded-xl p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center">
+                            <div class="text-2xl mr-3">✅</div>
+                            <div>
+                                <h3 class="text-white font-medium">Tải xuống thành công!</h3>
+                                <p class="text-white/70 text-sm">${data.message}</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white/5 rounded-lg p-4 mb-4">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <p class="text-white font-medium">${data.filename}</p>
+                                <p class="text-white/70 text-sm">File đã được lưu trên server</p>
+                            </div>
+                            <a href="${API_BASE}${data.download_url}" 
+                               target="_blank"
+                               class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition-colors">
+                                📥 Tải về máy
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center">
+                        <p class="text-white/60 text-sm">
+                            💡 File sẽ được lưu trên server và có thể tải về từ danh sách "File Đã Tải"
+                        </p>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Show error
+        function showError(message) {
+            const outputContainer = document.getElementById('outputContainer');
+            outputContainer.innerHTML = `
+                <div class="bg-red-500/10 border border-red-500/30 rounded-xl p-6 text-center">
+                    <div class="text-4xl mb-4">❌</div>
+                    <p class="text-white mb-2">Có lỗi xảy ra</p>
+                    <p class="text-red-300 text-sm">${message}</p>
+                    <button onclick="checkApiStatus()" class="mt-4 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors text-sm">
+                        🔄 Kiểm tra lại API
+                    </button>
+                </div>
+            `;
+        }
+
+        // Refresh downloads list
+        async function refreshDownloadsList() {
+            const container = document.getElementById('downloadsContainer');
+            container.innerHTML = `
+                <div class="bg-white/5 rounded-xl p-6 text-center">
+                    <div class="text-4xl mb-4 spinner">⚙️</div>
+                    <p class="text-white/70">Đang tải danh sách file...</p>
+                </div>
+            `;
+
+            try {
+                const response = await fetch(`${API_BASE}/downloads`);
+                const files = await response.json();
+
+                if (files.length === 0) {
+                    container.innerHTML = `
+                        <div class="bg-white/5 rounded-xl p-6 text-center">
+                            <div class="text-4xl mb-4">📂</div>
+                            <p class="text-white/70">Chưa có file nào được tải về</p>
+                            <p class="text-white/50 text-sm mt-2">Tải video để xem danh sách ở đây</p>
+                        </div>
+                    `;
+                } else {
+                    let filesHTML = '<div class="space-y-3">';
+                    files.forEach((file, index) => {
+                        const size = (file.size / (1024 * 1024)).toFixed(2);
+                        const date = new Date(file.created).toLocaleString('vi-VN');
+                        filesHTML += `
+                            <div class="bg-white/5 rounded-lg p-4">
+                                <div class="flex justify-between items-center">
+                                    <div class="flex-1">
+                                        <h4 class="text-white font-medium text-sm mb-1">${file.filename}</h4>
+                                        <div class="text-white/70 text-xs">
+                                            <span>${size} MB</span> • 
+                                            <span>${date}</span>
+                                        </div>
+                                    </div>
+                                    <div class="flex gap-2 ml-4">
+                                        <a href="${API_BASE}${file.download_url}" 
+                                           target="_blank"
+                                           class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs transition-colors">
+                                            📥 Tải
+                                        </a>
+                                        <button onclick="deleteFile('${file.filename}')"
+                                                class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs transition-colors">
+                                            🗑️ Xóa
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    filesHTML += '</div>';
+                    container.innerHTML = filesHTML;
+                }
+            } catch (error) {
+                container.innerHTML = `
+                    <div class="bg-red-500/10 border border-red-500/30 rounded-xl p-6 text-center">
+                        <div class="text-4xl mb-4">❌</div>
+                        <p class="text-white/70">Không thể tải danh sách file</p>
+                        <p class="text-red-300 text-sm">${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Delete file
+        async function deleteFile(filename) {
+            if (!confirm(`Bạn có chắc muốn xóa file "${filename}"?`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/delete/${encodeURIComponent(filename)}`, {
+                    method: 'DELETE'
+                });
+                
+                if (response.ok) {
+                    refreshDownloadsList();
+                } else {
+                    const data = await response.json();
+                    alert(`Lỗi: ${data.error}`);
+                }
+            } catch (error) {
+                alert(`Lỗi kết nối: ${error.message}`);
+            }
+        }
+
+        // Initialize app
+        window.onload = function() {
+            checkApiStatus();
+            refreshDownloadsList();
+            document.getElementById('videoUrl').focus();
+        };
+    </script>
+</body>
+</html>
