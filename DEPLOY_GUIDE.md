@@ -62,10 +62,14 @@ git push
 - Install yt-dlp qua pip
 - Port 7860 (mặc định của HF)
 - Bind `0.0.0.0` để accessible
+- **Fix permission**: Tạo user và set chmod 777 cho downloads/
+- **Fallback storage**: Dùng temp directory nếu app dir không writable
 
 ### App.js changes:
 - Port: `process.env.PORT || 7860`
 - Listen: `app.listen(PORT, '0.0.0.0')`
+- **Permission handling**: Auto fallback to temp directory
+- **Format selection**: Tối ưu để tránh yt-dlp warnings
 
 ### Demo.html changes:
 - API_BASE: `window.location.origin` (tự động)
@@ -89,3 +93,24 @@ https://huggingface.co/spaces/[YOUR_USERNAME]/ytdlp-web
 - **App không start**: Kiểm tra port 7860
 - **API không hoạt động**: Kiểm tra CORS và API_BASE
 - **No space left**: Bật auto-cleanup trong config.json
+- **Permission denied**: App tự động fallback sang temp directory
+- **yt-dlp warnings**: Đã tối ưu format selection
+- **Facebook/Instagram links**: Một số platform có thể block download
+
+## 🔄 Common Issues & Solutions
+
+### "Permission denied" error:
+```
+ERROR: unable to open for writing: [Errno 13] Permission denied
+```
+**Solution**: App đã được cập nhật để tự động sử dụng temp directory
+
+### "Command failed" với yt-dlp:
+- Kiểm tra URL có hợp lệ không
+- Một số platform có thể thay đổi API
+- Thử quality khác (worst thay vì best)
+
+### App sleep trên HF Spaces:
+- Apps miễn phí sẽ sleep sau 1 giờ không dùng
+- Truy cập lại để wake up
+- Upgrade Pro để avoid sleeping

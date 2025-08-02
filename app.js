@@ -4,6 +4,7 @@ const { exec } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
+const os = require('os');
 
 const app = express();
 const PORT = process.env.PORT || 7860; // Hugging Face Spaces sử dụng port 7860
@@ -15,11 +16,29 @@ app.use(express.json());
 // Serve static files (for demo.html)
 app.use(express.static(__dirname));
 
-// Tạo thư mục downloads nếu chưa tồn tại
-const downloadsDir = path.join(__dirname, 'downloads');
-if (!fs.existsSync(downloadsDir)) {
-    fs.mkdirSync(downloadsDir);
+// Tạo thư mục downloads nếu chưa tồn tại với fallback cho container
+let downloadsDir;
+
+// Thử tạo thư mục downloads trong app directory
+try {
+    downloadsDir = path.join(__dirname, 'downloads');
+    if (!fs.existsSync(downloadsDir)) {
+        fs.mkdirSync(downloadsDir, { recursive: true });
+    }
+    // Test write permission
+    const testFile = path.join(downloadsDir, 'test_write.tmp');
+    fs.writeFileSync(testFile, 'test');
+    fs.unlinkSync(testFile);
+} catch (error) {
+    // Nếu không thể tạo trong app dir, dùng temp directory
+    console.log('⚠️ Không thể ghi vào thư mục app, sử dụng temp directory');
+    downloadsDir = path.join(os.tmpdir(), 'ytdlp_downloads');
+    if (!fs.existsSync(downloadsDir)) {
+        fs.mkdirSync(downloadsDir, { recursive: true });
+    }
 }
+
+console.log(`📁 Thư mục downloads: ${downloadsDir}`);
 
 // Auto-cleanup function - xóa file sau 5 phút
 function scheduleFileCleanup(filePath, delay = 5 * 60 * 1000) { // 5 phút
@@ -95,10 +114,21 @@ app.post('/download', async (req, res) => {
         const outputTemplate = path.join(downloadsDir, `${fileId}.%(ext)s`);
         command = `yt-dlp -x --audio-format mp3 --audio-quality ${quality} -o "${outputTemplate}" "${url}"`;
     } else {
-        // Tải video
+        // Tải video với format selection tối ưu
         expectedExtension = 'mp4';
         const outputTemplate = path.join(downloadsDir, `${fileId}.%(ext)s`);
-        command = `yt-dlp -f "${quality}" -o "${outputTemplate}" "${url}"`;
+        
+        // Xử lý format selection để tránh warning
+        let formatFlag = '';
+        if (quality === 'best') {
+            formatFlag = ''; // Không cần -f flag, để yt-dlp tự chọn best
+        } else if (quality === 'worst') {
+            formatFlag = '-f "worst"';
+        } else {
+            formatFlag = `-f "bestvideo[height<=${quality.replace('p', '')}]+bestaudio/best[height<=${quality.replace('p', '')}]"`;
+        }
+        
+        command = `yt-dlp ${formatFlag} -o "${outputTemplate}" "${url}"`.replace(/\s+/g, ' ').trim();
     }
     
     console.log('Đang thực thi lệnh:', command);

@@ -25,8 +25,14 @@ RUN npm install
 # Copy application files
 COPY . .
 
-# Create downloads directory
-RUN mkdir -p downloads
+# Create downloads directory with proper permissions
+RUN mkdir -p downloads && chmod 777 downloads
+
+# Create user for security
+RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
+
+# Switch to non-root user
+USER appuser
 
 # Expose port 7860 (Hugging Face Spaces default)
 EXPOSE 7860
